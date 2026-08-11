@@ -2,6 +2,9 @@
 
 **Student ID used with `generate_for_student.py`:**
 <!-- paste the --student-id value you used -->
+142301002
+
+<!-- Seed Generated : 2152466865 -->
 
 
 ## What was hardcoded, and what would switching it have required?
