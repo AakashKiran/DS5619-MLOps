@@ -13,6 +13,7 @@ Run with:
 import argparse
 import csv
 import json
+from pathlib import Path
 
 import yaml
 
@@ -46,6 +47,12 @@ def load_transactions(path, fmt):
     Raise ValueError for any fmt other than "csv" or "json".
     """
     # TODO: implement
+    file_extension = Path(path).suffix.lower()    
+    if fmt == "csv" and file_extension != ".csv":
+        raise ValueError(f"Config format is 'csv', but file extension is '{file_extension}'")
+    if fmt == "json" and file_extension != ".json":
+        raise ValueError(f"Config format is 'json', but file extension is '{file_extension}'")
+    
     if fmt == "csv":
         with open(path, newline="") as f:
             reader = csv.DictReader(f)
