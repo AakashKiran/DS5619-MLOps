@@ -31,11 +31,16 @@ def load_config(path):
         data = yaml.safe_load(file)
     keys = list(data.keys())
     missing = []
+    missing_value = []
     for i in REQUIRED_KEYS:
         if i not in keys:
             missing.append(i)
+        elif data[i] is None:
+            missing_value.append(i)
     if len(missing) != 0:
         raise ValueError(f"{missing} is/are the missing keys.")
+    if len(missing_value) != 0:
+            raise ValueError(f"{missing_value} is/are the keys without values.")
     return data
 
 def load_transactions(path, fmt):
@@ -58,15 +63,15 @@ def load_transactions(path, fmt):
             with open(path, newline="") as f:
                 reader = csv.DictReader(f)
                 return list(reader)
-        except:
-            raise FileNotFoundError(f"Could not find the CSV file at: {path}")
+        except Exception:
+            raise Exception(f"Could not find (or) Failed to read the CSV file at: {path}")
     elif fmt == "json":
         try:
             with open(path, newline="") as file:
                 data = json.load(file)
                 return data
-        except:
-            raise FileNotFoundError(f"Could not find the JSON file at: {path}")
+        except Exception:
+            raise Exception(f"Could not find (or) Failed to read the JSON file at: {path}")
     else:
         raise ValueError(f"{fmt} is neither csv nor json.")        
 
