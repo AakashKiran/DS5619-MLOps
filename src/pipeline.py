@@ -54,13 +54,19 @@ def load_transactions(path, fmt):
         raise ValueError(f"Config format is 'json', but file extension is '{file_extension}'")
     
     if fmt == "csv":
-        with open(path, newline="") as f:
-            reader = csv.DictReader(f)
-            return list(reader)
+        try:
+            with open(path, newline="") as f:
+                reader = csv.DictReader(f)
+                return list(reader)
+        except:
+            raise FileNotFoundError(f"Could not find the CSV file at: {path}")
     elif fmt == "json":
-        with open(path, newline="") as file:
-            data = json.load(file)
-        return data
+        try:
+            with open(path, newline="") as file:
+                data = json.load(file)
+                return data
+        except:
+            raise FileNotFoundError(f"Could not find the JSON file at: {path}")
     else:
         raise ValueError(f"{fmt} is neither csv nor json.")        
 
