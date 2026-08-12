@@ -40,7 +40,7 @@ def load_config(path):
     if len(missing) != 0:
         raise ValueError(f"{missing} is/are the missing keys.")
     if len(missing_value) != 0:
-            raise ValueError(f"{missing_value} is/are the keys without values.")
+        raise ValueError(f"{missing_value} is/are the keys without values.")
     return data
 
 def load_transactions(path, fmt):
