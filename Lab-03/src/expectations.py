@@ -25,8 +25,15 @@ def _is_null(value):
 def expect_column_not_null(rows, column):
     """Return a Violation for every row where rows[i][column] is null/empty."""
     # TODO: implement
-    raise NotImplementedError
-
+    violations = []
+    for i in range(len(rows)):
+        if _is_null(rows[i][column]):
+            
+            violations.expectation = "expect_column_not_null"
+            violations.column = column
+            violations.row_index = i
+            violations.detail = f"Violation : In row {i+1}, {column} is NULL/Empty."
+    return violations
 
 def expect_column_positive(rows, column):
     """Return a Violation for every row where rows[i][column], cast to float,
@@ -34,16 +41,31 @@ def expect_column_positive(rows, column):
     all, that also counts as a violation (detail should say so).
     """
     # TODO: implement
-    raise NotImplementedError
-
+    violations = Violation()
+    for i in range(len(rows)):
+        try:
+            if float(rows[i][column]) <= 0:
+                violations.expectation = "expect_column_positive"
+                violations.column = column
+                violations.row_index = i
+                violations.detail = f"Violation : In row {i+1}, {column} is not strictly greater than 0."
+        except:
+            violations.expectation = "expect_column_positive"
+            violations.column = column
+            violations.row_index = i
+            violations.detail = f"Violation: In row {i+1}, {column} cannot be converted to float"
 
 def expect_column_in_set(rows, column, allowed_values):
     """Return a Violation for every row where rows[i][column] is not a member
     of allowed_values (a set or list you're given).
     """
     # TODO: implement
-    raise NotImplementedError
-
+    violations = []
+    for i in range(len(rows)):
+        if rows[i][column] not in allowed_values:
+            violations.append(i)
+            raise Exception(f"Violation : In row {i+1}, {column} is not a member of allowed values.") 
+    return violations
 
 def expect_column_unique(rows, column):
     """Return a Violation for every row AFTER THE FIRST that repeats a value
@@ -51,4 +73,12 @@ def expect_column_unique(rows, column):
     are violations; row 1 is not.)
     """
     # TODO: implement
-    raise NotImplementedError
+    violations = []
+    already_seen = []
+    for i in range(len(rows)):
+        if rows[i][column] not in already_seen:
+            already_seen.append(rows[i][column])
+        else:
+            violations.append(i)
+            raise Exception(f"Violation : In row {i+1}, {column} is a repetition (not unique).") 
+    return violations

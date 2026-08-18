@@ -54,7 +54,13 @@ def run_etl(config):
     Return the validation_report dict as well as writing it to disk.
     """
     # TODO: implement
-    raise NotImplementedError
+    data = extract(config["input_path"])
+    expectation_suite = build_expectation_suite()
+    for i in expectation_suite:
+        function = i[0]
+        args = i[1]
+        print(function(data, args["column"]))
+        return
 
 
 def main():
