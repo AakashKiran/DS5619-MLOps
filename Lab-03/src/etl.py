@@ -56,12 +56,65 @@ def run_etl(config):
     # TODO: implement
     data = extract(config["input_path"])
     expectation_suite = build_expectation_suite()
+    all_violations = []
+    violations_indices = set()
+    quarantine = []
+    clean = []
+    expectations = []
+    
     for i in expectation_suite:
         function = i[0]
         args = i[1]
-        print(function(data, args["column"]))
-        return
+        if "allowed_values" in args:
+            all_violations.extend(function(data, args["column"], args["allowed_values"]))
+        else:
+            all_violations.extend(function(data, args["column"]))
+            
+    for i in all_violations:
+        violations_indices.add(i.row_index)
+        found = False
+        for j in expectations:
+            if (j["expectation"] == i.expectation and j["column"] == i.column):
+                j["n_violations"] += 1
+                j["row_indices"] += [i.row_index]
+                found = True
+                break
+        if found is False:
+            expectations.append({
+                "expectation": i.expectation,
+                "column": i.column,
+                "n_violations": 1,
+                "row_indices": [i.row_index]
+            })
 
+    for i in range(len(data)):
+        if i in violations_indices:
+            quarantine.append(data[i])
+        else:
+            clean.append(data[i])
+            
+    with open(config['clean_output_path'], mode='w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(clean)
+    
+    with open(config['quarantine_output_path'], mode='w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(quarantine)
+            
+    report = {
+        "n_violations": len(all_violations),
+        "n_quarantined": len(quarantine),
+        "n_clean": len(clean),
+        "expectations" : expectations
+    }
+    
+    with open(config["report_output_path"], "w") as file:
+        json.dump(report, file, indent=2)
+    
+    return report
+    
 
 def main():
     parser = argparse.ArgumentParser()
