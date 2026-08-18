@@ -28,12 +28,13 @@ def expect_column_not_null(rows, column):
     violations = []
     for i in range(len(rows)):
         if _is_null(rows[i][column]):
-            
-            violations.expectation = "expect_column_not_null"
-            violations.column = column
-            violations.row_index = i
-            violations.detail = f"Violation : In row {i+1}, {column} is NULL/Empty."
-    return violations
+            violations.append(Violation(
+                expectation = "expect_column_not_null",
+                column = column,
+                row_index = i,
+                detail = f"Violation : In row {i+1}, {column} is NULL/Empty.")
+            )
+    return violations   
 
 def expect_column_positive(rows, column):
     """Return a Violation for every row where rows[i][column], cast to float,
@@ -41,19 +42,24 @@ def expect_column_positive(rows, column):
     all, that also counts as a violation (detail should say so).
     """
     # TODO: implement
-    violations = Violation()
+    violations = []
     for i in range(len(rows)):
         try:
             if float(rows[i][column]) <= 0:
-                violations.expectation = "expect_column_positive"
-                violations.column = column
-                violations.row_index = i
-                violations.detail = f"Violation : In row {i+1}, {column} is not strictly greater than 0."
+                violations.append(Violation(
+                    expectation = "expect_column_positive",
+                    column = column,
+                    row_index = i,
+                    detail = f"Violation : In row {i+1}, {column} is not strictly greater than 0.")
+                )
         except:
-            violations.expectation = "expect_column_positive"
-            violations.column = column
-            violations.row_index = i
-            violations.detail = f"Violation: In row {i+1}, {column} cannot be converted to float"
+            violations.append(Violation(
+                expectation = "expect_column_positive",
+                column = column,
+                row_index = i,
+                detail = f"Violation: In row {i+1}, {column} cannot be converted to float")
+            )
+    return violations
 
 def expect_column_in_set(rows, column, allowed_values):
     """Return a Violation for every row where rows[i][column] is not a member
@@ -63,8 +69,12 @@ def expect_column_in_set(rows, column, allowed_values):
     violations = []
     for i in range(len(rows)):
         if rows[i][column] not in allowed_values:
-            violations.append(i)
-            raise Exception(f"Violation : In row {i+1}, {column} is not a member of allowed values.") 
+            violations.append(Violation(
+                expectation = "expect_column_in_set",
+                column = column,
+                row_index = i,
+                detail = f"Violation : In row {i+1}, {column} is not a member of allowed values.")
+            )
     return violations
 
 def expect_column_unique(rows, column):
@@ -79,6 +89,10 @@ def expect_column_unique(rows, column):
         if rows[i][column] not in already_seen:
             already_seen.append(rows[i][column])
         else:
-            violations.append(i)
-            raise Exception(f"Violation : In row {i+1}, {column} is a repetition (not unique).") 
+            violations.append(Violation(
+                expectation = "expect_column_unique",
+                column = column,
+                row_index = i,
+                detail = f"Violation : In row {i+1}, {column} is a repetition (not unique).")
+            )
     return violations
