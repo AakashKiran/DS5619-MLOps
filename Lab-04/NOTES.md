@@ -2,7 +2,8 @@
 
 **Student ID used with `generate_for_student.py`:**
 <!-- paste the --student-id value you used -->
-
+- 142301002
+- Seed Generated: 4267196089
 
 ## v1 vs. v2 manifest comparison
 
