@@ -7,11 +7,15 @@
 
 ## v1 vs. v2 manifest comparison
 
-<!-- What's different between the v1 and v2 feature group's manifest.json?
-     (Look at both.) -->
+The v1 and v2 feature-group manifests differ in the following respects
+- v1 has 500 rows, v2 has 125
+- v1 has amount, v2 has amount_minor_units
+- v1 has country, v2 has country_code
+- The content_hash generated are different
+- v2 has an additional parameter - "device_fingerprint"
 
 
 ## Why treat amount_minor_units differently from amount?
 
-<!-- Why does build_features need to treat amount_minor_units differently
-     from amount for the aggregates to be comparable across versions? -->
+`amount_minor_units` is 100 times smaller than `amount` due to difference in their units. This is why `build_features` divides the v2 value by 100 before calculating averages and maxima. Otherwise v2 amounts would be 100 times too large and the aggregates would not be comparable with v1. 
+
