@@ -1,6 +1,6 @@
 {
-  "intended_use": "TODO: one or two sentences — what is this model for, and who is the intended user/system that consumes its predictions?",
-  "training_data": "TODO: one or two sentences — what data was this trained on (reference Week 4's card_activity feature group), what's its known coverage/limits?",
-  "limitations": "TODO: one or two sentences — under what conditions should this model NOT be trusted? (think about what a simple amount-threshold classifier structurally cannot catch)",
-  "ethical_considerations": "TODO: one or two sentences — what's the cost of a false positive here (a legitimate transaction blocked) vs. a false negative (fraud that gets through), and who bears that cost?"
+  "intended_use": "This is a fraud-detection model that attempts to flag fraudulent transactions by comparing to a threshold amount. The intended users are fraud detection teams at banks and other financial institutions",
+  "training_data": "The model is trained on week 4 card_activity feature group, version 1, created from historical transaction data. The data consists of card_id, transaction count, avg_amount, max_amount, pct card present, and event time.",
+  "limitations": "This model can only flag transactions based on the amount transferred. It misses frauds that go below the threshold and every other transactions that manipulate aspects other than money (such as unusual locations or number of time)",
+  "ethical_considerations": "In this context, False Positives are cases where a transaction is incorrectly labelled as Fraudulent. The cost of False Positives would mean losing customer's trust and ultimately loosing them to rival financial institutions. False Negatives are cases where a fraudulent transaction is considered legitimate. Here, the cost is that it leads to actual financial loss for customers. In both cases, the financial institute bears the costs"
 }
