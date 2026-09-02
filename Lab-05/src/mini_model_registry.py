@@ -119,8 +119,33 @@ def generate_model_card(name, version_id, card_fields, registry_dir):
       4. Return the path you wrote to.
     """
     # TODO: implement
-    raise NotImplementedError
-
+    for key in REQUIRED_CARD_FIELDS:
+        if key not in card_fields.keys() or card_fields[key] is None or not str(card_fields[key]).strip():
+            raise ValueError(f"The field '{key}' is missing or empty")
+        elif "TODO" in str(card_fields[key]):
+            raise ValueError(f"The field {key} has 'TODO' in its value.")
+        
+    manifest_path = os.path.join(_model_dir(registry_dir, name, version_id), "manifest.json")
+    
+    with open(manifest_path) as f:
+        manifest_contents = json.load(f)
+        
+    model_card = {
+        "name" : name,
+        "version_id" : version_id,
+        "metrics" : manifest_contents["metrics"],
+        "created_at" : _now()
+    }
+    
+    for key, value in card_fields.items():
+        model_card[key] = value
+        
+    model_card_path = os.path.join(_model_dir(registry_dir, name, version_id), "model_card.json")
+    
+    with open(model_card_path, "w") as f:
+        json.dump(model_card, f, indent=2)
+            
+    return model_card_path
 
 # ---------------------------------------------------------------------------
 # Part 3 — Promote a model version (the governance gate)
@@ -154,7 +179,46 @@ def promote_model(name, version_id, target_stage, registry_dir):
       4. Return the updated manifest (dict).
     """
     # TODO: implement
-    raise NotImplementedError
+    model_dir = _model_dir(registry_dir, name, version_id)
+    manifest_path = os.path.join(model_dir, "manifest.json")
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+        
+    card_path = os.path.join(model_dir, "model_card.json")
+    if target_stage == "Production":
+        if not os.path.exists(card_path):
+            raise GovernanceError(f"Model Card is missing for {name} {version_id}")                
+        if manifest["metrics"]["f1"] < PRODUCTION_F1_THRESHOLD:
+            raise GovernanceError(f"F1 score is below the production threshold for {name} {version_id}")
+        
+        previous_version_ids = os.listdir(os.path.join(registry_dir, "models", name))
+        for prev_id in previous_version_ids:
+            if prev_id == version_id:
+                continue
+            prev_manifest_path = os.path.join(registry_dir, "models", name, prev_id, "manifest.json")
+            if not os.path.exists(prev_manifest_path):
+                continue
+            with open(prev_manifest_path) as f:
+                prev_manifest = json.load(f)
+            if prev_manifest["stage"] == "Production":
+                prev_manifest["stage"] = "Archived"
+                with open(prev_manifest_path, "w") as f:
+                    json.dump(prev_manifest, f, indent=2)
+    
+    old_manifest_stage = manifest["stage"]
+    manifest["stage"] = target_stage
+    if "history" not in manifest.keys():
+        manifest["history"] = []
+    manifest["history"].append  ({
+        "from_stage": old_manifest_stage, 
+        "to_stage": target_stage, 
+        "at": _now()
+    })
+    
+    with open(manifest_path, "w") as f:
+        json.dump(manifest, f, indent=2)
+            
+    return manifest
 
 
 # ---------------------------------------------------------------------------
@@ -169,4 +233,16 @@ def get_production_model(name, registry_dir):
     Return None if no version is currently in Production.
     """
     # TODO: implement
-    raise NotImplementedError
+    model_dir = os.path.join(registry_dir, "models", name)
+    if not os.path.isdir(model_dir):
+        return None
+    for version in os.listdir(model_dir):
+        manifest_path = os.path.join(model_dir, version, "manifest.json")
+        if not os.path.exists(manifest_path):
+            continue
+        with open(manifest_path) as f:
+            manifest_content = json.load(f)
+        if manifest_content["stage"] == "Production":
+            return manifest_content
+    else:
+        return None
