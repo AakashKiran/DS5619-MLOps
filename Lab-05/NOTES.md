@@ -8,13 +8,15 @@
 ## Which candidate reached Production, and why?
 
 <!-- Which candidate ended up in Production, and why? -->
-
+Candidate B reached Production because its F1 score was 0.854, which is above the registry's 0.70 production threshold, and it had a completed model card. Candidate A was blocked because its F1 score was 0.466, below the threshold.
 
 ## Gating stale feature data
 
 <!-- What would you need to add to promote_model's gate if you also wanted
      to block promotion of a model trained on stale (e.g. >30-day-old)
      feature data? -->
+
+I would record the feature data's `as_of` timestamp or a relevant time specific variable in the model manifest. Then a comparison of that timestamp with the current UTC time in `promote_model` will be done. `GovernanceError` will be raised when the data is more than 30 days old, before allowing promotion.
 
 
 ## Scaling the gate to 40 candidates
@@ -23,3 +25,7 @@
      search had handed you 40 candidates instead of 2, what in your
      register_model/promote_model design would need to change (or
      genuinely wouldn't) to gate 40 instead of 2? -->
+
+The registry functions would not need to change as `register_model` already creates a separate immutable version for every candidate, and `promote_model` evaluates the model card and metrics for whichever version is passed to it. 
+
+However, the pipeline (run_pipeline.py) would need to loop over all 40 candidates rather than the current hardcoding for just candidates a and b before deciding the best model and promoting it. 
