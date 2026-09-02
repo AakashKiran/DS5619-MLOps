@@ -29,3 +29,13 @@ I would record the feature data's `as_of` timestamp or a relevant time specific 
 The registry functions would not need to change as `register_model` already creates a separate immutable version for every candidate, and `promote_model` evaluates the model card and metrics for whichever version is passed to it. 
 
 However, the pipeline (run_pipeline.py) would need to loop over all 40 candidates rather than the current hardcoding for just candidates a and b before deciding the best model and promoting it. 
+
+## My approach
+
+In `register_model`, I generate the next version number by scanning the model's existing version folders. Each  candidate is stored in its own directory with the copied `model.json` and a `manifest.json` containing its name, metrics, creation time, and initial stage. This prevents a new candidate from overwriting an older one and preserves model history.
+
+For `generate_model_card`, I first validate every required fields. The function rejects missing, empty, whitespace-only, or `TODO` in values. After validation, it reads the metrics from the model's manifest and writes a `model_card.json` containing the model identity, governance fields, metrics, and creation time. This keeps the governance information attached to the specific model version.
+
+In `promote_model`, I implemented Production as a governance gate. A model can reach Production only when it has a model card and its F1 score meets the 0.70 threshold. Staging does not require these Production checks. Before promoting a new version to Production, the function archives any previous Production version. It then updates the selected manifest and appends a history entry recording the old stage, new stage, and time of promotion.
+
+Finally, `get_production_model` scans the registered versions and returns the manifest whose stage is `Production`. If no version is in Production, it returns `None`. This provides a simple source of truth for which model is currently deployed instead of relying on memory or an external note.
