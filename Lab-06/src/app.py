@@ -36,7 +36,8 @@ def load_image_from_upload(file_storage):
     detector expects RGB pixel tuples).
     """
     # TODO: implement
-    raise NotImplementedError
+    raw_bytes = file_storage.read()
+    return Image.open(io.BytesIO(raw_bytes)).convert("RGB")
 
 
 def run_detection(image):
@@ -50,8 +51,11 @@ def run_detection(image):
     doesn't need a real dataset-wide id.)
     """
     # TODO: implement
-    raise NotImplementedError
-
+    detections = det.detect(image)
+    serialized_dict = {}
+    serialized_dict["detections"] = det.detections_to_coco(detections, image_id=0)
+    serialized_dict["count"] = len(serialized_dict["detections"])
+    return serialized_dict
 
 def create_app():
     app = Flask(__name__)
@@ -71,7 +75,11 @@ def create_app():
           the default 200 status.
         """
         # TODO: implement
-        raise NotImplementedError
+        if "image" not in request.files.keys():
+            return (jsonify({"error": "missing 'image' file field"}), 400)
+        img = load_image_from_upload(request.files["image"])
+        serialized_dict = run_detection(img)
+        return (jsonify(serialized_dict), 200)
 
     return app
 
