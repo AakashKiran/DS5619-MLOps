@@ -2,7 +2,8 @@
 
 **Student ID used with `generate_for_student.py`:**
 <!-- paste the --student-id value you used -->
-
+- Student ID: 142301002
+- Seed: 4228078734
 
 ## Built image size
 
