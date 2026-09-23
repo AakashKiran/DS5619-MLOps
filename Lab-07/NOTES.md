@@ -2,7 +2,8 @@
 
 **Student ID used with `generate_for_student.py`:**
 <!-- paste the --student-id value you used -->
-
+- student-id: 142301002
+- seed: 2080670810
 
 ## Why gate integration-test on needs: [lint, unit-test]?
 
