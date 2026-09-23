@@ -16,6 +16,10 @@ on:
   pull_request:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: Lab-07
+    
 jobs:
   lint:
     runs-on: ubuntu-latest
