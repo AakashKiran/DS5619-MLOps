@@ -93,7 +93,12 @@ def classify_drift(psi):
     Return one of those three strings.
     """
     # TODO: implement
-    raise NotImplementedError
+    if psi < PSI_MODERATE_THRESHOLD:
+        return "none"
+    elif psi < PSI_SIGNIFICANT_THRESHOLD:
+        return "moderate"
+    else:
+        return "significant"
 
 
 # ---------------------------------------------------------------------------
@@ -107,4 +112,16 @@ def summarize_scores(scores):
     std should be 0.0 rather than raising).
     """
     # TODO: implement
-    raise NotImplementedError
+    count = len(scores)
+    mean = statistics.mean(scores)
+    std = statistics.stdev(scores) if count >= 2 else 0.0
+    minimum = min(scores)
+    maximum = max(scores)
+
+    return {
+        "count": count,
+        "mean": round(mean, 4),
+        "std": round(std, 4),
+        "min": round(minimum, 4),
+        "max": round(maximum, 4)
+    }
