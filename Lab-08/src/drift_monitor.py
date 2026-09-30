@@ -86,41 +86,37 @@ def compute_psi(reference_scores, live_scores, n_bins=N_BINS):
     for l_score in live_scores:
         if l_score == 1.0:
             live_score_bins[-1] += 1
+            continue
 
         for lower_limit_idx in range(n_bins):
             if l_score < lower_limits_of_each_bin[lower_limit_idx]:
                 live_score_bins[lower_limit_idx - 1] += 1
                 break
-
+        else:
+            live_score_bins[-1] += 1
+            
     for r_score in reference_scores:
         if r_score == 1.0:
             reference_score_bins[-1] += 1
+            continue
 
         for lower_limit_idx in range(n_bins):
             if r_score < lower_limits_of_each_bin[lower_limit_idx]:
                 reference_score_bins[lower_limit_idx - 1] += 1
                 break
+        else:
+            reference_score_bins[-1] += 1
 
     sum_live = sum(live_score_bins)
     sum_reference = sum(reference_score_bins)
-
-    live_score_bins = [
-        max(live_score_bins[i] / sum_live, 1e-4)
-        for i in range(n_bins)
-    ]
-
-    reference_score_bins = [
-        max(reference_score_bins[i] / sum_reference, 1e-4)
-        for i in range(n_bins)
-    ]
+    
+    live_score_bins = [max(live_score_bins[i] / sum_live, 1e-4) for i in range(n_bins)]
+    reference_score_bins = [max(reference_score_bins[i] / sum_reference, 1e-4) for i in range(n_bins)]
 
     PSI = 0
 
     for i in range(n_bins):
-        PSI += (
-            (live_score_bins[i] - reference_score_bins[i])
-            * math.log(live_score_bins[i] / reference_score_bins[i])
-        )
+        PSI += ((live_score_bins[i] - reference_score_bins[i]) * math.log(live_score_bins[i] / reference_score_bins[i]))
 
     return PSI
 
