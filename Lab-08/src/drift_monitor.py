@@ -47,8 +47,14 @@ def extract_confidence_scores(camera_dir):
     det.detect(image) to get its detections, and collect d.score from each.
     """
     # TODO: implement
-    raise NotImplementedError
-
+    confidence_scores = []
+    all_raw_images = sorted(glob.glob(os.path.join(camera_dir, "*.jpg")))
+    for raw_image in all_raw_images:
+        image = Image.open(raw_image).convert("RGB")
+        detections = det.detect(image) 
+        for detection in detections:
+            confidence_scores.append(detection.score)
+    return confidence_scores
 
 # ---------------------------------------------------------------------------
 # Part 2 — Population Stability Index between a reference and live distribution
