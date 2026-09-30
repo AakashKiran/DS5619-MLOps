@@ -76,23 +76,6 @@ def compute_psi(reference_scores, live_scores, n_bins=N_BINS):
       5. Return the PSI value (float). Larger values mean more drift; PSI
          is 0 when the two distributions are identical.
     """
-    # TODO: implement
-    def compute_psi(reference_scores, live_scores, n_bins=N_BINS):
-    """Compute the Population Stability Index between two lists of scores,
-    both assumed to lie in [0.0, 1.0] (confidence scores).
-
-    Steps:
-      1. Split [0.0, 1.0] into `n_bins` equal-width bins.
-      2. For each bin, compute the PROPORTION (count / total) of
-         reference_scores and of live_scores that fall in it. A score of
-         exactly 1.0 belongs in the last bin.
-      3. To avoid division by zero / log(0) for empty bins, clamp every
-         proportion to a minimum of 1e-4 before using it in the ratio/log
-         below.
-      4. PSI = sum over bins of (live_pct - ref_pct) * ln(live_pct / ref_pct)
-      5. Return the PSI value (float). Larger values mean more drift; PSI
-         is 0 when the two distributions are identical.
-    """
     live_score_bins = [0] * n_bins
     reference_score_bins = [0] * n_bins
 
