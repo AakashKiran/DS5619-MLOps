@@ -2,6 +2,8 @@
 
 **Student ID used with `generate_for_student.py`:**
 <!-- paste the --student-id value you used -->
+- student_id: 142301002
+- seed: 1840943052
 
 
 ## Drift level vs. expectation
@@ -17,3 +19,5 @@
      access to ground-truth labels a day later? (Tie this to the kinds of
      drift from the lecture — which one does confidence-score-only
      monitoring miss?) -->
+
+## My Approach
