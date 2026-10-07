@@ -18,7 +18,6 @@ import time
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List
 
-
 @dataclass
 class Task:
     name: str
@@ -26,7 +25,6 @@ class Task:
     depends_on: List[str] = field(default_factory=list)
     max_retries: int = 0
     retry_delay_seconds: float = 0.0
-
 
 # ---------------------------------------------------------------------------
 # Part 1 — Topological order (a DAG is a dependency graph, not a list)
@@ -49,8 +47,42 @@ def topological_order(tasks: Dict[str, Task]) -> List[str]:
     placing every task, there's a cycle.
     """
     # TODO: implement
-    raise NotImplementedError
+    result = []
 
+    # Check that every dependency actually exists
+    for task in tasks.values():
+      for dependency in task.depends_on:
+        if dependency not in tasks:
+          raise ValueError(f"Missing dependency: {dependency} for task: {task.name}")
+
+    # Make a separate copy of the dependency information
+    valid_dependencies = {}
+    for name, task in tasks.items():
+      valid_dependencies[name] = task.depends_on.copy()
+      
+    tasks_copy = tasks.copy()
+
+    while tasks_copy:
+      task_found = False
+
+      for key, value in tasks_copy.items():
+        if valid_dependencies[key] == []:
+          result.append(value.name)
+          del tasks_copy[key]
+          
+          # Remove this task from the dependencies of other tasks
+          for key1 in tasks_copy:
+            if value.name in valid_dependencies[key1]:
+              valid_dependencies[key1].remove(value.name)
+              
+          task_found = True
+          break
+
+      # No task with zero dependencies means there is a cycle
+      if not task_found:
+        raise ValueError("Dependency cycle detected")
+
+    return result
 
 # ---------------------------------------------------------------------------
 # Part 2 — Retry a single task
@@ -68,9 +100,21 @@ def run_task_with_retry(task: Task, context: dict) -> int:
     it) after all retries are exhausted.
     """
     # TODO: implement
-    raise NotImplementedError
-
-
+    attempts = 0
+    
+    while True:
+      attempts += 1
+      
+      try:
+        task.fn(context)
+        return attempts
+      
+      except Exception:
+        if attempts == (task.max_retries + 1):
+          raise 
+        else:
+          time.sleep(task.retry_delay_seconds)
+  
 # ---------------------------------------------------------------------------
 # Part 3 — Run the whole DAG
 # ---------------------------------------------------------------------------
@@ -93,4 +137,17 @@ def run_dag(tasks: Dict[str, Task], context: dict) -> dict:
     Return {"order": <the order you computed>, "task_results": task_results}.
     """
     # TODO: implement
-    raise NotImplementedError
+    topological_ordering = topological_order(tasks)
+    execution_order = {"order" : [], "task_results" : dict()}
+    
+    for task in topological_ordering:
+      execution_order["order"].append(task)
+      try:
+        attempts = run_task_with_retry(tasks[task], context)
+        execution_order["task_results"][task] = {"status": "success", "attempts": attempts}
+      except Exception as exc:
+        execution_order["task_results"][task] = {"status": "failed", "attempts": tasks[task].max_retries+1, "error": str(exc)}
+        break
+        
+    return execution_order
+        
