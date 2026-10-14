@@ -2,6 +2,8 @@
 
 **Student ID used with `generate_for_student.py`:**
 <!-- paste the --student-id value you used -->
+- student_id: 142301002
+- seed: 1812353673
 
 
 ## Which classes got flagged?
