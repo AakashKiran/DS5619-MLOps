@@ -58,9 +58,23 @@ def compute_iou(box_a, box_b):
       5. Return intersection_area / union_area, or 0.0 if union_area is 0.
     """
     # TODO: implement
-    raise NotImplementedError
-
-
+    box_a_corners = [box_a[0], box_a[1], box_a[0]+box_a[2], box_a[1]+box_a[3]]
+    box_b_corners = [box_b[0], box_b[1], box_b[0]+box_b[2], box_b[1]+box_b[3]]
+    
+    overlap_width = max(0, min(box_b_corners[2], box_a_corners[2]) - max(box_b_corners[0], box_a_corners[0]))
+    overlap_height = max(0, min(box_b_corners[3], box_a_corners[3]) - max(box_b_corners[1], box_a_corners[1]))
+    
+    intersection_area = overlap_width * overlap_height
+    
+    def area(b1):
+        return b1[2] * b1[3]        
+    
+    union_area = area(box_a) + area(box_b) - intersection_area
+    
+    if union_area != 0:
+        return intersection_area / union_area
+    return 0.0
+    
 # ---------------------------------------------------------------------------
 # Part 2 — Was each ground-truth box found by ANY detection?
 # ---------------------------------------------------------------------------
@@ -78,10 +92,16 @@ def match_ground_truth(gt_boxes, detections, iou_threshold=0.3):
     detection CAN count as a match for more than one ground-truth box if it
     happens to overlap both (rare with real data, fine for this audit).
     """
-    # TODO: implement
-    raise NotImplementedError
-
-
+    gt_iou = []
+    for box in gt_boxes:
+        gt_iou_flag = False
+        for det in detections:
+            if compute_iou(box, det.bbox) >= iou_threshold:
+                gt_iou_flag = True
+                break
+        gt_iou.append(gt_iou_flag)
+    return gt_iou
+    
 # ---------------------------------------------------------------------------
 # Part 3 — Run the audit across every image and every class
 # ---------------------------------------------------------------------------
@@ -112,9 +132,56 @@ def audit_by_category(coco_path, fixtures_dir, iou_threshold=0.3, transform=None
     file paths are `os.path.join(fixtures_dir, image["file_name"])`.
     """
     # TODO: implement
-    raise NotImplementedError
+    with open (coco_path) as annotation_file:
+        annotations = json.load(annotation_file)
+        
+    category_id_name_map = {}
+    for cat in annotations["categories"]:
+        category_id_name_map[cat["id"]] = cat["name"]
+        
+    image_annotations_map = {}
+    for ann in annotations["annotations"]:
+        if ann["image_id"] not in image_annotations_map:
+            image_annotations_map[ann["image_id"]] = []
+        image_annotations_map[ann["image_id"]].append(ann)
+        
+    category_wise_info = {}
+    for i,j in category_id_name_map.items():
+        category_wise_info[j] = {"total": 0, "detected": 0, "recall": 0.0}
+    
+    for image in annotations["images"]:
+        img_path = os.path.join(fixtures_dir, image["file_name"])
 
+        with Image.open(img_path) as image_file:
+            img = image_file.convert("RGB")
 
+        if transform is not None:
+            img = transform(img)
+
+        detections = det.detect(img)
+
+        image_anns = image_annotations_map.get(image["id"], [])
+        gt_boxes = [ann["bbox"] for ann in image_anns]
+
+        matches = match_ground_truth(gt_boxes, detections, iou_threshold)
+
+        for i in range(len(image_anns)):
+            ann = image_anns[i]
+            matched = matches[i]
+
+            category_name = category_id_name_map[ann["category_id"]]
+
+            category_wise_info[category_name]["total"] += 1
+
+            if matched:
+                category_wise_info[category_name]["detected"] += 1
+
+    result = {}
+    for cat in category_wise_info:
+        if category_wise_info[cat]["total"] > 0:
+            result[cat] = {"total": category_wise_info[cat]["total"], "detected": category_wise_info[cat]["detected"], "recall": round(category_wise_info[cat]["detected"] / category_wise_info[cat]["total"], 4)}   
+    return result
+            
 # ---------------------------------------------------------------------------
 # Part 4 — Surface the categories that fall below the bar
 # ---------------------------------------------------------------------------
@@ -127,4 +194,9 @@ def find_underperforming_categories(category_stats, recall_threshold=0.90):
     recall first).
     """
     # TODO: implement
-    raise NotImplementedError
+    cat_recall = []
+    for cat, info in category_stats.items():
+        if info["recall"] < recall_threshold:
+            cat_recall.append((cat, info["recall"]))
+    cat_recall.sort(key=lambda item: item[1])
+    return cat_recall
