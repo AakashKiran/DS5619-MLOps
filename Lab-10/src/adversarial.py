@@ -46,7 +46,15 @@ def perturb_image(img, eps):
     ...) puts them back. No per-pixel Python loop is needed.
     """
     # TODO: implement
-    raise NotImplementedError
+    r, g, b = img.split()
+    
+    r_new = r.point(lambda x: max(0, min(255, x - eps)))
+    g_new = g.point(lambda x: max(0, min(255, x + eps)))
+    b_new = b.point(lambda x: max(0, min(255, x + eps)))
+        
+    new_img = Image.merge("RGB", (r_new, g_new, b_new))
+    
+    return new_img
 
 
 # ---------------------------------------------------------------------------
@@ -63,8 +71,11 @@ def audit_under_attack(coco_path, fixtures_dir, eps_values=(0, 10, 20, 30, 40),
     audit_by_category returns. eps=0 is the clean audit.
     """
     # TODO: implement
-    raise NotImplementedError
-
+    eps_stats_map = {}
+    for eps in eps_values:
+        category_stats = fa.audit_by_category(coco_path, fixtures_dir, iou_threshold=iou_threshold, transform=lambda img: perturb_image(img, eps))
+        eps_stats_map[eps] = category_stats
+    return eps_stats_map
 
 # ---------------------------------------------------------------------------
 # Part 7 — Which classes are the most fragile?
@@ -84,4 +95,14 @@ def find_most_fragile(attack_stats, eps, top_k=3):
     the lowest ABSOLUTE recall under attack; compare the two in NOTES.md.
     """
     # TODO: implement
-    raise NotImplementedError
+    assert 0 in attack_stats and eps in attack_stats
+    
+    categories = attack_stats[0].keys()
+    category_drop_map = []
+    
+    for category in categories:
+        drop = attack_stats[0][category]["recall"] - attack_stats[eps][category]["recall"]
+        category_drop_map.append((category, round(drop, 4)))
+    category_drop_map.sort(key=lambda item: (-item[1], item[0]))
+        
+    return category_drop_map[:top_k]
